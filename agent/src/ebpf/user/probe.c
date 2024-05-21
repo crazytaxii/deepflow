@@ -131,6 +131,7 @@ static int program__attach_probe(const struct ebpf_prog *prog, bool retprobe,
 		// https://lore.kernel.org/lkml/20180606083344.31320-3-ravi.bangoria@linux.ibm.com/
 		pfd = bpf_attach_uprobe(progfd, attach_type, ev_name, config1,
 					offset, pid, 0);
+                ebpf_warning("uretprobe %s to %d", ev_name, pid);
 	}
 
 	if (pfd < 0)

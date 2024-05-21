@@ -45,6 +45,7 @@
 #include "java/config.h"
 #include "java/df_jattach.h"
 #include "profile_common.h"
+#include "../python_probe.h"
 
 #include "../perf_profiler_bpf_common.c"
 
@@ -546,10 +547,6 @@ static void insert_perf_event_programs(struct bpf_tracer *tracer)
 {
 	__insert_output_prog_to_map(tracer,
 				    MAP_PROGS_JMP_PERF_NAME,
-				    "bpf_perf_event",
-				    PROG_BPF_PERF_EVENT_IDX);
-	__insert_output_prog_to_map(tracer,
-				    MAP_PROGS_JMP_PERF_NAME,
 				    "bpf_prog_pe__python_frame_ptr",
 				    PROG_PYTHON_FRAME_PTR_IDX);
 	__insert_output_prog_to_map(tracer,
@@ -560,6 +557,10 @@ static void insert_perf_event_programs(struct bpf_tracer *tracer)
 				    MAP_PROGS_JMP_PERF_NAME,
 				    "bpf_prog_pe__python_perf_output",
 				    PROG_PYTHON_PERF_OUTPUT_IDX);
+	__insert_output_prog_to_map(tracer,
+				    MAP_PROGS_JMP_PERF_NAME,
+				    "bpf_prog_pe__dwarf_unwind",
+				    PROG_DWARF_UNWIND_IDX);
 }
 
 /*
@@ -638,6 +639,7 @@ int start_continuous_profiler(int freq, int java_syms_space_limit,
 	memset(tps, 0, sizeof(*tps));
 	init_list_head(&tps->uprobe_syms_head);
 	CP_PROFILE_SET_PROBES(tps);
+	collect_python_uprobe_syms_from_procfs(tps);
 
 	struct bpf_tracer *tracer =
 	    setup_bpf_tracer(CP_TRACER_NAME, bpf_load_buffer_name,
