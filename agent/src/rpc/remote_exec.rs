@@ -89,8 +89,12 @@ struct Command {
     command_type: CommandType,
 }
 
+#[cfg(feature = "enterprise")]
+extern crate enterprise_utils;
+
 fn all_supported_commands() -> Vec<Command> {
-    vec![
+    #[allow(unused_mut)]
+    let mut commands = vec![
         Command {
             cmdline: "lsns",
             output_format: OutputFormat::Text,
@@ -133,7 +137,10 @@ fn all_supported_commands() -> Vec<Command> {
             desc: "",
             command_type: CommandType::Kubernetes(KubeCmd::LogPrevious),
         },
-    ]
+    ];
+    #[cfg(feature = "enterprise")]
+    commands.extend(enterprise_utils::enterprise_commands());
+    commands
 }
 
 thread_local! {
