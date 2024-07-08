@@ -149,6 +149,7 @@ func (c *TagRecorder) getUpdaters(db *mysql.DB, domainLcuuidToIconID map[string]
 		// NewChPolicy(),
 		// NewChNpbTunnel(),
 	}
+	log.Infof("weiqiang redis config: %#v", c.cfg.RedisCfg)
 	if c.cfg.RedisCfg.Enabled {
 		updaters = append(updaters, NewChIPResource(c.tCtx))
 	}

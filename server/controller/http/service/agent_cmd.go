@@ -151,12 +151,21 @@ func AppendContent(key string, data []byte) {
 	}
 }
 
-func AppendErr(key string, data *string) {
+func AppendErrorMessage(key string, data *string) {
 	agentCMDMutex.Lock()
 	defer agentCMDMutex.Unlock()
 	if manager, ok := agentCMDManager[key]; ok {
-		manager.resp.Content += *data
+		manager.resp.ErrorMessage = *data
 	}
+}
+
+func GetErrormessage(key string) string {
+	agentCMDMutex.RLock()
+	defer agentCMDMutex.RUnlock()
+	if manager, ok := agentCMDManager[key]; ok {
+		return manager.resp.ErrorMessage
+	}
+	return ""
 }
 
 func GetContent(key string) string {
@@ -237,14 +246,16 @@ func GetCMDAndNamespace(orgID, agentID int) (*model.RemoteExecResp, error) {
 	}
 }
 
-func RunAgentCMD(orgID, agentID int, req *trident.RemoteExecRequest) (string, error) {
+func RunAgentCMD(orgID, agentID int, req *trident.RemoteExecRequest, cmdLine string) (string, error) {
+	serverLog := fmt.Sprintf("The deepflow-server is unable to execute the `%s` command."+
+		" Detailed error information is as follows:\n\n", cmdLine)
 	dbInfo, err := mysql.GetDB(orgID)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("%s%s", serverLog, err.Error())
 	}
 	var agent *mysql.VTap
 	if err := dbInfo.Where("id = ?", agentID).Find(&agent).Error; err != nil {
-		return "", err
+		return "", fmt.Errorf("%s%s", serverLog, err.Error())
 	}
 	b, _ := json.Marshal(req)
 	log.Infof("current node ip(%s) agent(cur controller ip: %s, controller ip: %s, id: %d, name: %s) run remote command, request: %s",
@@ -261,8 +272,12 @@ func RunAgentCMD(orgID, agentID int, req *trident.RemoteExecRequest) (string, er
 	for {
 		select {
 		case <-time.After(agentCommandTimeout):
-			return "", fmt.Errorf("timeout(%vs) to run agent command", agentCommandTimeout.Seconds())
+			return "", fmt.Errorf("%stimeout(%vs) to run agent command", agentCommandTimeout.Seconds())
 		case <-manager.ExecDoneCH:
+			if msg := GetErrormessage(key); msg != "" {
+				return "", fmt.Errorf("The deepflow-agent is unable to execute the `%s` command."+
+					" Detailed error information is as follows:\n\n%s", cmdLine, msg)
+			}
 			content = manager.resp.Content
 			log.Infof("command run content len: %d", len(content))
 			return content, nil
