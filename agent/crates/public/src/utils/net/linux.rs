@@ -51,6 +51,7 @@ use super::{Addr, Link, LinkFlags, LinkStats, MacAddr, NeighborEntry, Route, Rul
 use crate::bytes::{read_u16_le, read_u32_le, read_u64_le};
 
 pub const IF_TYPE_IPVLAN: &'static str = "ipvlan";
+pub const IF_TYPE_DUMMY: &'static str = "dummy";
 
 const NETLINK_ERROR_NOADDR: i32 = -19;
 

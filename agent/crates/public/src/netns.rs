@@ -50,7 +50,7 @@ use thiserror::Error;
 
 use super::utils::net::{
     self, addr_list, link_by_name, link_list, links_by_name_regex, route_list, rule_list, Addr,
-    Link, MacAddr, IF_TYPE_IPVLAN,
+    Link, MacAddr, IF_TYPE_DUMMY, IF_TYPE_IPVLAN,
 };
 
 #[derive(Debug, Error)]
@@ -448,22 +448,25 @@ pub fn interfaces_linked_with<S: AsRef<[NsFile]>>(
 
             for link in links {
                 trace!("check {:?}", link);
-                let (tap_ns, prefix_map): (&NsFile, Option<&HashMap<_, _>>) =
-                    if let Some(nsid) = link.link_netnsid {
-                        let Some((tap_ns, prefix_map)) = nsid_map.get(&(nsid as i32)) else {
-                            debug!("no tap_ns found for link {:?}", link);
-                            continue;
-                        };
-                        (**tap_ns, Some(*prefix_map))
-                    } else {
-                        match link.if_type.as_ref() {
-                            Some(if_type) if if_type == IF_TYPE_IPVLAN => (&NsFile::Root, None),
-                            _ => {
-                                debug!("{:?} has no link-netnsid", link);
-                                continue;
-                            }
-                        }
+                let (tap_ns, prefix_map): (&NsFile, Option<&HashMap<_, _>>) = if let Some(nsid) =
+                    link.link_netnsid
+                {
+                    let Some((tap_ns, prefix_map)) = nsid_map.get(&(nsid as i32)) else {
+                        debug!("no tap_ns found for link {:?}", link);
+                        continue;
                     };
+                    (**tap_ns, Some(*prefix_map))
+                } else {
+                    match link.if_type.as_ref() {
+                        Some(if_type) if if_type == IF_TYPE_IPVLAN || if_type == IF_TYPE_DUMMY => {
+                            (&NsFile::Root, None)
+                        }
+                        _ => {
+                            debug!("{:?} has no link-netnsid", link);
+                            continue;
+                        }
+                    }
+                };
                 let info = InterfaceInfo {
                     tap_ns: tap_ns.clone(),
                     // no peer index means same index
