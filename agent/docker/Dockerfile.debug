@@ -1,0 +1,5 @@
+FROM registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:v6.5
+
+COPY agent/target/debug/deepflow-agent /bin/deepflow-agent
+
+CMD ["/bin/deepflow-agent", "-f", "/etc/deepflow-agent/deepflow-agent.yaml"]
