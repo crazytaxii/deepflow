@@ -31,13 +31,14 @@ import (
 func (k *KubernetesGather) getPods() (pods []model.Pod, err error) {
 	log.Debug("get pods starting")
 	podTypesMap := map[string]bool{
-		"CloneSet":              false,
-		"DaemonSet":             false,
-		"Deployment":            false,
-		"InPlaceSet":            false,
-		"ReplicaSet":            false,
-		"StatefulSet":           false,
-		"ReplicationController": false,
+		"CloneSet":               false,
+		"DaemonSet":              false,
+		"Deployment":             false,
+		"InPlaceSet":             false,
+		"ReplicaSet":             false,
+		"StatefulSet":            false,
+		"ReplicationController":  false,
+		"VirtualMachineInstance": false,
 	}
 	for _, p := range k.k8sInfo["*v1.Pod"] {
 		pData, pErr := simplejson.NewJson([]byte(p))

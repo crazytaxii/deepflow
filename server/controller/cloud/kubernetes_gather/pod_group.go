@@ -34,12 +34,13 @@ func (k *KubernetesGather) getPodGroups() (podGroups []model.PodGroup, err error
 	podControllers[3] = k.k8sInfo["*v1.CloneSet"]
 	podControllers[4] = k.k8sInfo["*v1.Pod"]
 	pgNameToTypeID := map[string]int{
-		"deployment":            common.POD_GROUP_DEPLOYMENT,
-		"statefulset":           common.POD_GROUP_STATEFULSET,
-		"replicaset":            common.POD_GROUP_REPLICASET_CONTROLLER,
-		"daemonset":             common.POD_GROUP_DAEMON_SET,
-		"replicationcontroller": common.POD_GROUP_RC,
-		"cloneset":              common.POD_GROUP_CLONESET,
+		"deployment":             common.POD_GROUP_DEPLOYMENT,
+		"statefulset":            common.POD_GROUP_STATEFULSET,
+		"replicaset":             common.POD_GROUP_REPLICASET_CONTROLLER,
+		"daemonset":              common.POD_GROUP_DAEMON_SET,
+		"replicationcontroller":  common.POD_GROUP_RC,
+		"cloneset":               common.POD_GROUP_CLONESET,
+		"virtualmachineinstance": common.POD_GROUP_VIRTUALMACHINEINSTANCE,
 	}
 	for t, podController := range podControllers {
 		for _, c := range podController {
@@ -101,6 +102,15 @@ func (k *KubernetesGather) getPodGroups() (podGroups []model.PodGroup, err error
 					}
 					serviceType = common.POD_GROUP_DEPLOYMENT
 					label = "inplaceset:" + namespace + ":" + name
+				} else if metaData.Get("ownerReferences").GetIndex(0).Get("kind").MustString() == "VirtualMachineInstance" {
+					uLcuuid = common.IDGenerateUUID(k.orgID, metaData.Get("ownerReferences").GetIndex(0).Get("uid").MustString())
+					name = metaData.Get("ownerReferences").GetIndex(0).Get("name").MustString()
+					if k.podGroupLcuuids.Contains(uLcuuid) {
+						log.Debugf("virtualmachineinstance pod (%s) abstract workload already existed", name)
+						continue
+					}
+					serviceType = common.POD_GROUP_VIRTUALMACHINEINSTANCE
+					label = "virtualmachineinstance:" + namespace + ":" + name
 				} else {
 					providerType := metaData.Get("labels").Get("virtual-kubelet.io/provider-cluster-type").MustString()
 					if providerType != "serverless" && providerType != "proprietary" {
