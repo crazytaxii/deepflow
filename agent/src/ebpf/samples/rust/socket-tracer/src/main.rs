@@ -203,7 +203,7 @@ extern "C" fn debug_callback(_data: *mut c_char, len: c_int) {
 extern "C" fn socket_trace_callback(sd: *mut SK_BPF_DATA) {
     unsafe {
         let mut proto_tag = String::from("");
-        if sk_proto_safe(sd) == SOCK_DATA_OTHER {
+        if sk_proto_safe(sd) == SOCK_DATA_WHITELIST {
             proto_tag.push_str("ORTHER");
         } else if sk_proto_safe(sd) == SOCK_DATA_HTTP1 {
             proto_tag.push_str("HTTP1");
@@ -305,7 +305,7 @@ extern "C" fn socket_trace_callback(sd: *mut SK_BPF_DATA) {
                 print_io_event_info((*sd).cap_data, (*sd).cap_len);
             } else if (*sd).source == 5 {
                 print_uprobe_grpc_dataframe((*sd).cap_data, (*sd).cap_len);
-            } else if sk_proto_safe(sd) == SOCK_DATA_OTHER {
+            } else if sk_proto_safe(sd) == SOCK_DATA_WHITELIST {
                 for x in data.into_iter() {
                     print!("{} ", format!("{:02x}", x));
                 }

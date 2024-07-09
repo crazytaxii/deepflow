@@ -227,6 +227,8 @@ static inline char *get_proto_name(uint16_t proto_id)
 	switch (proto_id) {
 	case PROTO_HTTP1:
 		return "HTTP1";
+	case PROTO_WHITELIST:
+		return "WhiteList";
 	case PROTO_HTTP2:
 		return "HTTP2";
 	case PROTO_MYSQL:

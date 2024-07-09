@@ -1358,6 +1358,8 @@ __data_submit(struct pt_regs *ctx, struct conn_info_s *conn_info,
 	v->direction = conn_info->direction;
 	v->syscall_len = syscall_len;
 	v->msg_type = MSG_COMMON;
+	if (conn_info->protocol == PROTO_WHITELIST)
+		v->msg_type = conn_info->message_type;
 
 	// Reassembly modification type
 	if (sk_info.allow_reassembly) {
@@ -1512,17 +1514,23 @@ static __inline int process_data(struct pt_regs *ctx, __u64 id,
 		}
 	}
 
-	bool data_submit_dircet = false;
+	bool whitelist_direct_submit = false;
 	struct kprobe_port_bitmap *allow = kprobe_port_bitmap__lookup(&k0);
 	if (allow) {
 		if (is_set_bitmap(allow->bitmap, conn_info->tuple.dport) ||
 		    is_set_bitmap(allow->bitmap, conn_info->tuple.num)) {
-			data_submit_dircet = true;
+			whitelist_direct_submit = true;
 		}
 	}
-	if (data_submit_dircet) {
-		conn_info->protocol = PROTO_ORTHER;
-		conn_info->message_type = MSG_REQUEST;
+	if (whitelist_direct_submit) {
+		conn_info->protocol = PROTO_WHITELIST;
+		if (is_socket_info_valid(conn_info->socket_info_ptr)) {
+			if (conn_info->socket_info_ptr->direction != direction)
+				conn_info->message_type = MSG_WHITELIST_START;
+			else
+				conn_info->message_type = MSG_COMMON;
+		} else
+			conn_info->message_type = MSG_WHITELIST_START;
 	} else {
 		int act;
 		act = infer_l7_class_1(ctx_map, conn_info, direction, args,

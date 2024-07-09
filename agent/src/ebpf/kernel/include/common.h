@@ -44,6 +44,8 @@ enum message_type {
 	MSG_REASM_SEG,
 	// Common messages
 	MSG_COMMON,
+	// White list begins
+        MSG_WHITELIST_START,
 
 	// 无法推断协议类型，先在map中存储等下一次的数据
 	// 获取后两者合并，再进行判断。主要场景用于MySQL，Kafka
@@ -65,7 +67,7 @@ enum traffic_direction {
 // 数据协议
 enum traffic_protocol {
 	PROTO_UNKNOWN = 0,
-	PROTO_ORTHER = 1,
+	PROTO_WHITELIST = 1,
 	PROTO_HTTP1 = 20,
 	PROTO_HTTP2 = 21,
 	PROTO_DUBBO = 40,

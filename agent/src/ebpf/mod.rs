@@ -43,7 +43,7 @@ pub const SOCK_DIR_RCV: u8 = 1;
 #[allow(dead_code)]
 pub const SOCK_DATA_UNKNOWN: u16 = 0;
 #[allow(dead_code)]
-pub const SOCK_DATA_OTHER: u16 = 1;
+pub const SOCK_DATA_WHITELIST: u16 = 1;
 #[allow(dead_code)]
 pub const SOCK_DATA_HTTP1: u16 = 20;
 #[allow(dead_code)]
@@ -158,6 +158,9 @@ pub const MSG_REASM_SEG: u8 = 6;
 // set to 'MSG_COMMON'.
 #[allow(dead_code)]
 pub const MSG_COMMON: u8 = 7;
+// Indicate the start of whitelist read/write
+#[allow(dead_code)]
+pub const MSG_WHITELIST_START: u8 = 8;
 
 //Register event types
 #[allow(dead_code)]
