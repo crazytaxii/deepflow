@@ -9,6 +9,8 @@ FLAGS = -gcflags "-l -l" -ldflags "-X main.Branch=${BRANCH} -X main.RevCount=${R
 		-X 'main.goVersion=$(shell go version)' -X 'main.CompileTime=${COMPILE_TIME}'" \
 		-tags=go_json
 BINARY_SUFFIX :=
+REPOSITRY := crazytaxii
+TAG := dev
 
 .PHONY: all
 all: server
@@ -109,6 +111,10 @@ test: vendor $(proto) $(generated_libs)
 .PHONY: server
 server: vendor $(proto) $(generated_libs)
 	go build -mod vendor ${FLAGS} -o bin/deepflow-server${BINARY_SUFFIX} cmd/server/main.go cmd/server/config.go
+
+.PHONY: server-image
+server-image:
+	docker build -t ${REPOSITRY}/deepflow-server:${TAG} -f Dockerfile.ci ..
 
 .PHONY: querier
 querier: vendor $(proto) $(generated_libs)
